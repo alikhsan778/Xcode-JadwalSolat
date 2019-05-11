@@ -26,9 +26,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        locationManager.requestWhenInUseAuthorization()
         
-        
+        // setting up location
+        locationManager.requestWhenInUseAuthorization() // request location when app is open
         if CLLocationManager.locationServicesEnabled() {
             locationManager.delegate = self
             locationManager.desiredAccuracy = kCLLocationAccuracyBest
@@ -36,16 +36,19 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         }
     }
     
+    // starting here for get city name
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if let location = locations.first {
             print(location.coordinate)
         }
         
+        // using geocoder for reverse description location
         CLGeocoder().reverseGeocodeLocation(manager.location!) { (placemarks, error) in
             if error != nil {
                 print(error?.localizedDescription ?? "error")
             }
             
+            // get city and country name
             if placemarks?.count ?? 0 > 0 {
                 let pm = placemarks?[0]
                 print(pm?.administrativeArea ?? "noting")
@@ -65,6 +68,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         
     }
     
+    // geting json resonses from api
     func getApi(url: URL) {
         URLSession.shared.dataTask(with: url) { (data, url, error) in
             print("sukses")
@@ -78,17 +82,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
                 let salatResponses = try JSONDecoder().decode(MuslimSolatResponses.self, from: data)
                 self.initSolat(solat: salatResponses.solat[0])
                 
-                
             } catch {
                 print("error after network success")
             }
-            
             
         }.resume()
     }
 
     func initSolat(solat: Salat) {
-        
+        // setting up date format
         let dateFormatApi = DateFormatter()
         dateFormatApi.dateFormat = "yyyy-MM-dd"
         
@@ -96,6 +98,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         dateFormatPrint.dateFormat = "EEEE, dd MMM yyyy"
         dateFormatPrint.locale = Locale.init(identifier: "id-ID")
         
+        // setup view in main thread
         DispatchQueue.main.async {
             self.txCity.text = self.cityName
             self.txSubuh.text = solat.subuh
